@@ -33,7 +33,7 @@ type TCPTransport struct{
 	TCPTransportOpts
 	ListenAddress 		string
 	listener 			net.Listener
-	shakeHands 		HandshakeFunc
+	shakeHands 			HandshakeFunc
 	decoder 			Decoder
 
 	mu 					sync.RWMutex
@@ -72,10 +72,6 @@ func (t *TCPTransport) startAcceptLoop(){
 	}	
 }
 
-type Temp struct{
-
-}
-
 func (t *TCPTransport) handleConn(conn net.Conn){
 	peer := NewTCPPeer(conn, true)
 
@@ -86,7 +82,7 @@ func (t *TCPTransport) handleConn(conn net.Conn){
 	}
 
 	// Read loop
-	msg := &Message{}
+	msg := &RPC{}
 	for{
 		if err := t.Decoder.Decode(conn, msg); err != nil{
 			fmt.Printf("TCP error: %s", err)
