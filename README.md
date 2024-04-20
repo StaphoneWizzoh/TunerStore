@@ -1,3 +1,3 @@
 # TunerStore
 
-A file storage service written in Golang.
+A distributed file storage service written in Golang.
