@@ -13,6 +13,7 @@ func CASPathTransformFunc(key string) string {
 	hash := sha1.Sum([]byte(key))
 	hashString := hex.EncodeToString(hash[:])
 
+	// blockSize describes the depth of the folder tree
 	blockSize := 5
 	sliceLength := len(hashString) / blockSize
 
