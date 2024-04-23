@@ -5,4 +5,4 @@ run: build
 	@./bin/server
 
 test:
-	@go test ./... -v
+	@go test ./... 
