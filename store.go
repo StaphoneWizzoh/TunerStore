@@ -12,6 +12,8 @@ import (
 	"strings"
 )
 
+const defaultRootFolderName = "GGNetwork"
+
 func CASPathTransformFunc(key string) PathKey {
 	hash := sha1.Sum([]byte(key))
 	hashString := hex.EncodeToString(hash[:])
@@ -53,6 +55,8 @@ func (p PathKey) fullPath () string{
 }
 
 type StoreOpts struct{
+	// Root is the folder name of the root, containing all the files and folders of the system
+	Root string
 	PathTransformFunc PathTransformFunc
 }
 
@@ -60,11 +64,22 @@ type Store struct{
 	StoreOpts
 }
 
-var DefaultPathTransformFunc = func (key string) string {
-	return key
+var DefaultPathTransformFunc = func (key string) PathKey {
+	return PathKey{
+		PathName: key,
+		FileName: key,
+	}
 }
 
 func NewStore(opts StoreOpts) *Store{
+	if opts.PathTransformFunc == nil {
+		opts.PathTransformFunc = DefaultPathTransformFunc
+	}
+
+	if len(opts.Root) == 0 {
+		opts.Root = defaultRootFolderName
+	}
+
 	return &Store{
 		StoreOpts: opts,
 	}
