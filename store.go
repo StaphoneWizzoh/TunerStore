@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/sha1"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"io"
 	"io/fs"
@@ -89,7 +90,7 @@ func (s *Store) Has(key string) bool {
 	pathKey := s.PathTransformFunc(key)
 
 	_, err := os.Stat(pathKey.fullPath())
-	if err == fs.ErrNotExist {
+	if errors.Is(err, fs.ErrNotExist){
 		return false
 	}
 	return true
@@ -118,7 +119,9 @@ func (s *Store) Read(key string) (io.Reader, error){
 }
 
 func (s *Store) readStream(key string)(io.ReadCloser, error){
-	return os.Open(s.PathTransformFunc(key).fullPath())
+	pathKey := s.PathTransformFunc(key) 
+	fullPathWithRoot := fmt.Sprintf("%s/%s",s.Root, pathKey.fullPath())
+	return os.Open(fullPathWithRoot)
 }
 
 func (s *Store) writeStream(key string, r io.Reader) error{
