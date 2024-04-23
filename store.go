@@ -103,7 +103,7 @@ func (s *Store) Delete(key string) error{
 		log.Printf("deleted [%s] from disk", pathKey.FileName)
 	}()
 
-	firstPathNameWithRoot := fmt.Sprintf("%s%s", s.Root, pathKey.FirstPathName())		
+	firstPathNameWithRoot := fmt.Sprintf("%s/%s", s.Root, pathKey.FirstPathName())		
 
 	return os.RemoveAll(firstPathNameWithRoot)
 }
