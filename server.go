@@ -3,7 +3,6 @@ package main
 import p2p "github.com/StaphoneWizzoh/TunerStore/peer2peer"
 
 type FileServerOpts struct{
-	ListenAddr string
 	StorageRoot string
 	PathTransformFunc PathTransformFunc
 	Transport p2p.Transport
