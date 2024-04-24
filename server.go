@@ -1,6 +1,10 @@
 package main
 
-import p2p "github.com/StaphoneWizzoh/TunerStore/peer2peer"
+import (
+	"fmt"
+
+	p2p "github.com/StaphoneWizzoh/TunerStore/peer2peer"
+)
 
 type FileServerOpts struct{
 	StorageRoot string
@@ -12,6 +16,7 @@ type FileServer struct{
 	FileServerOpts
 
 	store *Store
+	quitCh chan struct{}
 }
 
 func NewFileServer(opts FileServerOpts) *FileServer{
@@ -23,13 +28,32 @@ func NewFileServer(opts FileServerOpts) *FileServer{
 	return &FileServer{
 		FileServerOpts: opts,
 		store: NewStore(storeOpts),
+		quitCh: make(chan struct{}),
 	}
 }
 
-func (s *FileServerOpts) Start() error{
+func (s *FileServer) Stop(){
+	close(s.quitCh)
+}
+
+func (s *FileServer) loop(){
+
+	for{
+		select{
+		case msg := <- s.Transport.Consume():
+			fmt.Println(msg)
+		case <- s.quitCh:
+			return
+		}
+	}
+}
+
+func (s *FileServer) Start() error{
 	if err := s.Transport.ListenAndAccept(); err != nil {
 		return err
 	}
+
+	s.loop()
 
 	return nil
 }
