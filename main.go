@@ -1,35 +1,30 @@
 package main
 
 import (
-	"fmt"
 	"log"
 
 	p2p "github.com/StaphoneWizzoh/TunerStore/peer2peer"
 )
 
-func OnPeer(peer p2p.Peer) error {
-	peer.Close()
-	return nil
-}
 
 func main(){
-	tcpOpts := p2p.TCPTransportOpts{
+	tcpTransportOpts := p2p.TCPTransportOpts{
 		ListenAddr: ":3000",
-		Decoder: p2p.DefaultDecoder{},
 		HandshakeFunc: p2p.NOPHandshakeFunc,
-		OnPeer: OnPeer,
+		Decoder: p2p.DefaultDecoder{},
+		// !TODO: OnPeer func
 	}
 
-	tr := p2p.NewTCPTransport(tcpOpts)
+	tcpTransport := p2p.NewTCPTransport(tcpTransportOpts)
 
-	go func ()  {
-		for{
-			msg := <-tr.Consume()
-			fmt.Printf("Message: %v\n", msg)
-		}
-	}()
+	fileServerOpts := FileServerOpts{
+		StorageRoot: "3000_network",
+		PathTransformFunc: CASPathTransformFunc,
+		Transport: tcpTransport,
+	}
 
-	if err := tr.ListenAndAccept(); err != nil{
+	s := NewFileServer(fileServerOpts)
+	if err := s.Start(); err != nil {
 		log.Fatal(err)
 	}
 
