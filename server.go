@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 
 	p2p "github.com/StaphoneWizzoh/TunerStore/peer2peer"
 )
@@ -37,6 +38,10 @@ func (s *FileServer) Stop(){
 }
 
 func (s *FileServer) loop(){
+	defer func ()  {
+		log.Println("File server stopped due to user quit action")
+		s.Transport.Close()	
+	}()
 
 	for{
 		select{
