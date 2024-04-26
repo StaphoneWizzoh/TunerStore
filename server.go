@@ -56,7 +56,7 @@ func (s *FileServer) loop(){
 
 func (s *FileServer) bootstrapNetwork()error{
 	for _, addr:= range s.BootstrapNodes{
-		// s.Transport.Dial()
+		// s.Transport.Dial()git
 	}
 
 	return nil
