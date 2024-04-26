@@ -2,15 +2,13 @@ package main
 
 import (
 	"log"
-	"time"
 
 	p2p "github.com/StaphoneWizzoh/TunerStore/peer2peer"
 )
 
-
-func main(){
+func makeServer(listenAddr string, nodes ...string) *FileServer {
 	tcpTransportOpts := p2p.TCPTransportOpts{
-		ListenAddr: ":3000",
+		ListenAddr: listenAddr,
 		HandshakeFunc: p2p.NOPHandshakeFunc,
 		Decoder: p2p.DefaultDecoder{},
 		// !TODO: OnPeer func
@@ -19,22 +17,18 @@ func main(){
 	tcpTransport := p2p.NewTCPTransport(tcpTransportOpts)
 
 	fileServerOpts := FileServerOpts{
-		StorageRoot: "3000_network",
+		StorageRoot: listenAddr + "_network",
 		PathTransformFunc: CASPathTransformFunc,
 		Transport: tcpTransport,
-		BootstrapNodes: []string{":4000"},
+		BootstrapNodes: nodes,
 	}
 
-	s := NewFileServer(fileServerOpts)
-	
+	return NewFileServer(fileServerOpts)
+}
+
+func main(){
+	s1 := makeServer(":3000", "")
 	go func ()  {
-		time.Sleep(time.Second * 3)
-		s.Stop()
+		log.Fatal(s1.Start())	
 	}()
-
-	if err := s.Start(); err != nil {
-		log.Fatal(err)
-	}
-
-	
 }
