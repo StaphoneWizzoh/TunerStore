@@ -22,6 +22,7 @@ func main(){
 		StorageRoot: "3000_network",
 		PathTransformFunc: CASPathTransformFunc,
 		Transport: tcpTransport,
+		BootstrapNodes: []string{":4000"},
 	}
 
 	s := NewFileServer(fileServerOpts)
