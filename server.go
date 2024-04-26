@@ -56,6 +56,10 @@ func (s *FileServer) loop(){
 
 func (s *FileServer) bootstrapNetwork() error{
 	for _, addr:= range s.BootstrapNodes{
+		if len(addr) == 0 {
+			continue
+		}
+		
 		go func (addr string)  {
 			fmt.Println("attempting to connect with remote:", addr)
 			if err := s.Transport.Dial(addr); err != nil {
