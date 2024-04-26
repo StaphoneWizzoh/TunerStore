@@ -101,14 +101,14 @@ func (t *TCPTransport) startAcceptLoop(){
 	}	
 }
 
-func (t *TCPTransport) handleConn(conn net.Conn){
+func (t *TCPTransport) handleConn(conn net.Conn, outbound bool){
 	var err error
 	defer func ()  {
 		fmt.Printf("dropping peer connection: %s", err)
 		conn.Close()
 		}()
 
-	peer := NewTCPPeer(conn, true)
+	peer := NewTCPPeer(conn, outbound)
 
 	if err = t.HandshakeFunc(peer); err != nil {
 		return
