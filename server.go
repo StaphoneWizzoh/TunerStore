@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/gob"
 	"fmt"
 	"io"
@@ -40,12 +41,7 @@ func NewFileServer(opts FileServerOpts) *FileServer{
 	}
 }
 
-type Payload struct{
-	Key string
-	Data []byte
-}
-
-func (s *FileServer) broadcast(p Payload) error{
+func (s *FileServer) broadcast(p *Payload) error{
 	peers := []io.Writer{}
 
 	for _, peer := range s.peers{
@@ -57,8 +53,28 @@ func (s *FileServer) broadcast(p Payload) error{
 	return gob.NewEncoder(multiWriter).Encode(p)
 }
 
+
+type Payload struct{
+	Key string
+	Data []byte
+}
+
 func (s *FileServer) StoreData(key string, r io.Reader) error{
-	return nil
+	buf := new(bytes.Buffer)
+	tee := io.TeeReader(r, buf)
+	
+	if err := s.store.Write(key ,tee); err != nil{
+		return err
+	}
+
+	p := &Payload{
+		Key: key,
+		Data: buf.Bytes(),
+	}
+
+	fmt.Println(buf.Bytes())
+
+	return s.broadcast(p)
 }
 
 func (s *FileServer) Stop(){
@@ -85,7 +101,11 @@ func (s *FileServer) loop(){
 	for{
 		select{
 		case msg := <- s.Transport.Consume():
-			fmt.Println(msg)
+			var p Payload
+			if err := gob.NewDecoder(bytes.NewReader(msg.Payload)).Decode(&p); err != nil{
+				log.Fatal(err)
+			}
+			fmt.Printf("%+v\n", p)
 		case <- s.quitCh:
 			return
 		}
