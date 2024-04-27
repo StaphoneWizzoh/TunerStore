@@ -1,7 +1,9 @@
 package main
 
 import (
+	"bytes"
 	"log"
+	"time"
 
 	p2p "github.com/StaphoneWizzoh/TunerStore/peer2peer"
 )
@@ -35,5 +37,14 @@ func main(){
 		log.Fatal(s1.Start())	
 	}()
 
-	s2.Start()
+	time.Sleep(1 * time.Second)
+
+	go s2.Start()
+	
+	time.Sleep(1 * time.Second)
+
+	data := bytes.NewReader([]byte("a thick data file"))
+	s2.StoreData("privateData", data)
+
+	select{}
 }
