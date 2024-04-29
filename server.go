@@ -76,6 +76,8 @@ func (s *FileServer) StoreData(key string, r io.Reader) error{
 		}
 	}
 
+	
+
 	return nil
 	
 	// if err := s.store.Write(key ,tee); err != nil{
