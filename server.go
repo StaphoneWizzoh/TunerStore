@@ -63,7 +63,7 @@ func (s *FileServer) StoreData(key string, r io.Reader) error{
 
 	buf := new(bytes.Buffer)
 	msg := Message{
-		Payload: []byte("storageKey"),
+		Payload: []byte("storage_key"),
 	}
 
 	if err := gob.NewEncoder(buf).Encode(msg); err != nil {
