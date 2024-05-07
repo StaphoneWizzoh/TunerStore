@@ -60,25 +60,32 @@ type Message struct{
 
 type MessageStoreFile struct{
 	Key string
+	Size int64
 }
 
 func (s *FileServer) StoreData(key string, r io.Reader) error{
-	// buf := new(bytes.Buffer)
-	// tee := io.TeeReader(r, buf)
-
 	buf := new(bytes.Buffer)
+	tee := io.TeeReader(r, buf)
+
+	size, err := s.store.Write(key ,tee)
+	if err != nil{
+		return err
+	}
+
 	msg := Message{
 		Payload: MessageStoreFile{
 			Key: key,
+			Size: size, 
 		},
 	}
 
-	if err := gob.NewEncoder(buf).Encode(msg); err != nil {
+	msgBuf := new(bytes.Buffer)
+	if err := gob.NewEncoder(msgBuf).Encode(msg); err != nil {
 		return err
 	}
 
 	for _, peer := range s.peers{
-		if err := peer.Send(buf.Bytes()); err != nil{
+		if err := peer.Send(msgBuf.Bytes()); err != nil{
 			return err
 		}
 	}
@@ -86,29 +93,16 @@ func (s *FileServer) StoreData(key string, r io.Reader) error{
 	// TODO: fix this sleeping
 	time.Sleep(3 * time.Second)
 
-	payload := []byte("THIS IS A LARGE FILE")
 	for _, peer := range s.peers{
-		if err := peer.Send(payload); err != nil{
+		n ,err := io.Copy(peer, r)
+		if err != nil {
 			return err
 		}
+
+		fmt.Printf("received and written %d bytes to disk\n", n)
 	}
 
 	return nil
-	
-	// if err := s.store.Write(key ,tee); err != nil{
-	// 	return err
-	// }
-
-	// p := &DataMessage{
-	// 	Key: key,
-	// 	Data: buf.Bytes(),
-	// }
-
-	// return s.broadcast(&Message{
-	// 	From: "todo",
-	// 	Payload: p,
-	// })
-	
 }
 
 func (s *FileServer) Stop(){
@@ -145,23 +139,6 @@ func (s *FileServer) loop(){
 				log.Println(err)
 				return
 			}
-
-			// fmt.Printf("payload %+v\n:", msg.Payload)
-
-			// peer, ok := s.peers[rpc.From]
-			// if !ok{
-			// 	panic("peer not found in the peer map")
-			// }			
-			
-			// test_byte := make([]byte, 1000)
-			// if _, err := peer.Read(test_byte); err != nil {
-			// 	panic(err)
-			// }
-
-			// fmt.Printf("received %s\n:", string(test_byte))
-
-			// peer.(*p2p.TCPPeer).waitGroup.Done()
-
 		case <- s.quitCh:
 			return
 		}
@@ -178,7 +155,17 @@ func (s *FileServer) handleMessage(from string, msg *Message) error{
 }
 
 func (s *FileServer) handleMessageStoreFile(from string, msg MessageStoreFile) error{
-	fmt.Printf("%+v\n", msg)
+	peer, ok := s.peers[from]
+	if !ok{
+		return fmt.Errorf("peer (%s) could not be found in the peer map", from)
+	}
+
+	if _, err := s.store.Write(msg.Key, io.LimitReader(peer, msg.Size)); err != nil {
+		return err
+	}
+
+	peer.(*p2p.TCPPeer).WaitGroup.Done()
+
 	return nil
 }
 
