@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"sync"
+	"time"
 
 	p2p "github.com/StaphoneWizzoh/TunerStore/peer2peer"
 )
@@ -82,14 +83,15 @@ func (s *FileServer) StoreData(key string, r io.Reader) error{
 		}
 	}
 
-	// time.Sleep(3 * time.Second)
+	// TODO: fix this sleeping
+	time.Sleep(3 * time.Second)
 
-	// payload := []byte("THIS IS A LARGE FILE")
-	// for _, peer := range s.peers{
-	// 	if err := peer.Send(payload); err != nil{
-	// 		return err
-	// 	}
-	// }
+	payload := []byte("THIS IS A LARGE FILE")
+	for _, peer := range s.peers{
+		if err := peer.Send(payload); err != nil{
+			return err
+		}
+	}
 
 	return nil
 	
@@ -139,19 +141,24 @@ func (s *FileServer) loop(){
 				return
 			}
 
-			fmt.Printf("payload %+v\n:", msg.Payload)
-
-			peer, ok := s.peers[rpc.From]
-			if !ok{
-				panic("peer not found in the peer map")
-			}			
-			
-			test_byte := make([]byte, 1000)
-			if _, err := peer.Read(test_byte); err != nil {
-				panic(err)
+			if err := s.handleMessage(rpc.From, &msg); err != nil{
+				log.Println(err)
+				return
 			}
 
-			fmt.Printf("received %s\n:", string(test_byte))
+			// fmt.Printf("payload %+v\n:", msg.Payload)
+
+			// peer, ok := s.peers[rpc.From]
+			// if !ok{
+			// 	panic("peer not found in the peer map")
+			// }			
+			
+			// test_byte := make([]byte, 1000)
+			// if _, err := peer.Read(test_byte); err != nil {
+			// 	panic(err)
+			// }
+
+			// fmt.Printf("received %s\n:", string(test_byte))
 
 			// peer.(*p2p.TCPPeer).waitGroup.Done()
 
@@ -161,14 +168,19 @@ func (s *FileServer) loop(){
 	}
 }
 
-// func (s *FileServer) handleMessage(msg *Message) error{
-// 	switch v := msg.Payload.(type){
-// 	case *DataMessage:
-// 		fmt.Printf("received data %+v\n", v)
-// 	}
+func (s *FileServer) handleMessage(from string, msg *Message) error{
+	switch v := msg.Payload.(type){
+	case MessageStoreFile:
+		return s.handleMessageStoreFile(from, v)
+	}
 
-// 	return nil
-// }
+	return nil
+}
+
+func (s *FileServer) handleMessageStoreFile(from string, msg MessageStoreFile) error{
+	fmt.Printf("%+v\n", msg)
+	return nil
+}
 
 func (s *FileServer) bootstrapNetwork() error{
 	for _, addr:= range s.BootstrapNodes{
