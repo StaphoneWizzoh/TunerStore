@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"sync"
+	"time"
 
 	p2p "github.com/StaphoneWizzoh/TunerStore/peer2peer"
 )
@@ -76,6 +77,8 @@ func (s *FileServer) StoreData(key string, r io.Reader) error{
 		}
 	}
 
+	time.Sleep(3 * time.Second)
+
 	payload := []byte("THIS IS A LARGE FILE")
 	for _, peer := range s.peers{
 		if err := peer.Send(payload); err != nil{
@@ -130,11 +133,20 @@ func (s *FileServer) loop(){
 				log.Println(err)
 			}
 
-			// if err := s.handleMessage(&m); err != nil{
-			// 	log.Println(err)
-			// }
+			fmt.Printf("received %s\n:", string(msg.Payload.([]byte)))
 
-			fmt.Printf("received %s:", string(msg.Payload.([]byte)))
+			peer, ok := s.peers[rpc.From]
+			if !ok{
+				panic("peer not found in the peer map")
+			}			
+			
+			test_byte := make([]byte, 1000)
+			if _, err := peer.Read(test_byte); err != nil {
+				panic(err)
+			}
+			panic("Testing")
+
+			fmt.Printf("received %s\n:", string(test_byte))
 
 
 		case <- s.quitCh:
