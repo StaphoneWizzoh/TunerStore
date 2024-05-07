@@ -76,7 +76,12 @@ func (s *FileServer) StoreData(key string, r io.Reader) error{
 		}
 	}
 
-	
+	payload := []byte("THIS IS A LARGE FILE")
+	for _, peer := range s.peers{
+		if err := peer.Send(payload); err != nil{
+			return err
+		}
+	}
 
 	return nil
 	
