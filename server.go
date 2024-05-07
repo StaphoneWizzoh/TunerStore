@@ -7,7 +7,6 @@ import (
 	"io"
 	"log"
 	"sync"
-	"time"
 
 	p2p "github.com/StaphoneWizzoh/TunerStore/peer2peer"
 )
@@ -58,13 +57,19 @@ type Message struct{
 	Payload any
 }
 
+type MessageStoreFile struct{
+	Key string
+}
+
 func (s *FileServer) StoreData(key string, r io.Reader) error{
 	// buf := new(bytes.Buffer)
 	// tee := io.TeeReader(r, buf)
 
 	buf := new(bytes.Buffer)
 	msg := Message{
-		Payload: []byte("storage_key"),
+		Payload: MessageStoreFile{
+			Key: key,
+		},
 	}
 
 	if err := gob.NewEncoder(buf).Encode(msg); err != nil {
@@ -77,14 +82,14 @@ func (s *FileServer) StoreData(key string, r io.Reader) error{
 		}
 	}
 
-	time.Sleep(3 * time.Second)
+	// time.Sleep(3 * time.Second)
 
-	payload := []byte("THIS IS A LARGE FILE")
-	for _, peer := range s.peers{
-		if err := peer.Send(payload); err != nil{
-			return err
-		}
-	}
+	// payload := []byte("THIS IS A LARGE FILE")
+	// for _, peer := range s.peers{
+	// 	if err := peer.Send(payload); err != nil{
+	// 		return err
+	// 	}
+	// }
 
 	return nil
 	
@@ -131,9 +136,10 @@ func (s *FileServer) loop(){
 			var msg Message
 			if err := gob.NewDecoder(bytes.NewReader(rpc.Payload)).Decode(&msg); err != nil{
 				log.Println(err)
+				return
 			}
 
-			fmt.Printf("received %s\n:", string(msg.Payload.([]byte)))
+			fmt.Printf("payload %+v\n:", msg.Payload)
 
 			peer, ok := s.peers[rpc.From]
 			if !ok{
@@ -144,10 +150,10 @@ func (s *FileServer) loop(){
 			if _, err := peer.Read(test_byte); err != nil {
 				panic(err)
 			}
-			panic("Testing")
 
 			fmt.Printf("received %s\n:", string(test_byte))
 
+			// peer.(*p2p.TCPPeer).waitGroup.Done()
 
 		case <- s.quitCh:
 			return
@@ -191,4 +197,8 @@ func (s *FileServer) Start() error{
 	s.loop()
 
 	return nil
+}
+
+func init(){
+	gob.Register(MessageStoreFile{})
 }
