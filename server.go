@@ -158,7 +158,7 @@ func (s *FileServer) OnPeer(p p2p.Peer) error{
 
 func (s *FileServer) loop(){
 	defer func ()  {
-		log.Println("File server stopped due to user quit action")
+		log.Println("File server stopped due to error or user quit action")
 		s.Transport.Close()	
 	}()
 
@@ -167,13 +167,12 @@ func (s *FileServer) loop(){
 		case rpc := <- s.Transport.Consume():
 			var msg Message
 			if err := gob.NewDecoder(bytes.NewReader(rpc.Payload)).Decode(&msg); err != nil{
-				log.Println(err)
-				return
+				log.Println("decoding error: ",err)
 			}
 
 			if err := s.handleMessage(rpc.From, &msg); err != nil{
-				log.Println(err)
-				return
+				log.Println("handle message error: ", err)
+				
 			}
 		case <- s.quitCh:
 			return
@@ -213,7 +212,7 @@ func (s *FileServer) handleMessageStoreFile(from string, msg MessageStoreFile) e
 func (s *FileServer) handleMessageGetFile(from string, msg MessageGetFile)error{
 	
 	if !s.store.Has(msg.key){
-		fmt.Printf("file (%s) does not exist on disk\n", msg.key)
+		return fmt.Errorf("need to serve file (%s) but it does not exist on disk", msg.key)
 	}
 	
 	r, err := s.store.Read(msg.key)
