@@ -47,7 +47,7 @@ func main(){
 	// data := bytes.NewReader([]byte("a thick data file"))
 	// s2.Store("privateData", data)
 
-	r, err := s2.Get("foo")
+	r, err := s2.Get("privateData")
 	if err != nil{
 		log.Fatal(err)
 	}
