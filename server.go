@@ -78,7 +78,7 @@ func (s *FileServer) broadcast(msg *Message) error{
 	return nil
 }
 
-func (s *FileServer) StoreData(key string, r io.Reader) error{
+func (s *FileServer) Store(key string, r io.Reader) error{
 	fileBuffer := new(bytes.Buffer)
 	tee := io.TeeReader(r, fileBuffer)
 
@@ -101,6 +101,7 @@ func (s *FileServer) StoreData(key string, r io.Reader) error{
 	// TODO: fix this sleeping
 	time.Sleep(3 * time.Second)
 
+	// TODO: use a multiwriter here
 	for _, peer := range s.peers{
 		n ,err := io.Copy(peer, fileBuffer)
 		if err != nil {
