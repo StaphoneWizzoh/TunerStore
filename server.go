@@ -78,12 +78,26 @@ func (s *FileServer) broadcast(msg *Message) error{
 	return nil
 }
 
+type MessageGetFile struct{
+	key string
+}
+
 func (s *FileServer) Get(key string)(io.Reader, error){
 	if s.store.Has(key){
 		return s.store.Read(key)
 	}
 
-	panic("don't have file locally")
+	fmt.Printf("don't have file locally")
+
+	msg := Message{
+		Payload: MessageGetFile{
+			key: key,
+		},
+	}
+
+	if err := s.broadcast(&msg); err != nil{
+		return nil, err
+	}
 
 	return nil,nil
 }
