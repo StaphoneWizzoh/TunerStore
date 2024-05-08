@@ -78,6 +78,16 @@ func (s *FileServer) broadcast(msg *Message) error{
 	return nil
 }
 
+func (s *FileServer) Get(key string)(io.Reader, error){
+	if s.store.Has(key){
+		return s.store.Read(key)
+	}
+
+	panic("don't have file locally")
+
+	return nil,nil
+}
+
 func (s *FileServer) Store(key string, r io.Reader) error{
 	fileBuffer := new(bytes.Buffer)
 	tee := io.TeeReader(r, fileBuffer)
