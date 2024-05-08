@@ -44,7 +44,7 @@ func main(){
 	time.Sleep(1 * time.Second)
 
 	data := bytes.NewReader([]byte("a thick data file"))
-	s2.StoreData("privateData", data)
+	s2.Store("privateData", data)
 
 	select{}
 }
