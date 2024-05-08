@@ -87,7 +87,7 @@ func (s *FileServer) Get(key string)(io.Reader, error){
 		return s.store.Read(key)
 	}
 
-	fmt.Printf("don't have file locally")
+	fmt.Printf("don't have file (%s) locally, fetching from network...\n", key)
 
 	msg := Message{
 		Payload: MessageGetFile{
@@ -98,6 +98,9 @@ func (s *FileServer) Get(key string)(io.Reader, error){
 	if err := s.broadcast(&msg); err != nil{
 		return nil, err
 	}
+
+	// TODO: Here for testing purposes, to be removed
+	select{}
 
 	return nil,nil
 }
@@ -182,6 +185,8 @@ func (s *FileServer) handleMessage(from string, msg *Message) error{
 	switch v := msg.Payload.(type){
 	case MessageStoreFile:
 		return s.handleMessageStoreFile(from, v)
+	case MessageGetFile:
+		return s.handleMessageGetFile(from, v)
 	}
 
 	return nil
@@ -201,6 +206,32 @@ func (s *FileServer) handleMessageStoreFile(from string, msg MessageStoreFile) e
 	log.Printf("written (%d) bytes to disk\n", n)
 
 	peer.(*p2p.TCPPeer).WaitGroup.Done()
+
+	return nil
+}
+
+func (s *FileServer) handleMessageGetFile(from string, msg MessageGetFile)error{
+	
+	if !s.store.Has(msg.key){
+		fmt.Printf("file (%s) does not exist on disk\n", msg.key)
+	}
+	
+	r, err := s.store.Read(msg.key)
+	if err != nil {
+		return err
+	}
+
+	peer, ok := s.peers[from]
+	if !ok{
+		return fmt.Errorf("peer %s not in map", from)
+	}
+	
+	n ,err := io.Copy(peer, r)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("wrote %d bytes over the network to %s\n", n, from)
 
 	return nil
 }
@@ -236,4 +267,5 @@ func (s *FileServer) Start() error{
 
 func init(){
 	gob.Register(MessageStoreFile{})
+	gob.Register(MessageGetFile{})
 }
