@@ -51,8 +51,14 @@ type TCPTransport struct{
 func NewTCPTransport(opts TCPTransportOpts) *TCPTransport{
 	return &TCPTransport{
 		TCPTransportOpts: opts,
-		rpcCh: make(chan RPC),
+		rpcCh: make(chan RPC, 1024),
 	}
+}
+
+// Addr implements the transport interface returning the address
+// of which the transport is accepting connections 
+func (t *TCPTransport) Addr()string{
+	return t.ListenAddr
 }
 
 // consume implements the transport interface,
