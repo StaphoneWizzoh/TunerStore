@@ -117,7 +117,7 @@ func (s *FileServer) Get(key string)(io.Reader, error){
 	// TODO: Here for testing purposes, to be removed
 	select{}
 
-	return nil,nil
+	// return nil,nil
 }
 
 func (s *FileServer) Store(key string, r io.Reader) error{
@@ -141,7 +141,7 @@ func (s *FileServer) Store(key string, r io.Reader) error{
 	}
 
 	// TODO: fix this sleeping
-	time.Sleep(3 * time.Second)
+	time.Sleep(5 * time.Millisecond)
 
 	// TODO: use a multiwriter here
 	for _, peer := range s.peers{
@@ -218,9 +218,9 @@ func (s *FileServer) handleMessageStoreFile(from string, msg MessageStoreFile) e
 		return err
 	}
 
-	log.Printf("written (%d) bytes to disk\n", n)
+	log.Printf("[%s] written (%d) bytes to disk\n",s.Transport.Addr(), n)
 
-	peer.(*p2p.TCPPeer).WaitGroup.Done()
+	peer.CloseStream()
 
 	return nil
 }

@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"log"
 	"time"
 
@@ -45,7 +46,8 @@ func main(){
 
 	for i:=0; i < 10; i++{
 		data := bytes.NewReader([]byte("a thick data file"))
-		s2.Store("privateData", data)	
+		s2.Store(fmt.Sprintf("privateData_%d", i), data)
+		time.Sleep(time.Millisecond * 5)	
 	}
 
 	// r, err := s2.Get("privateData")
