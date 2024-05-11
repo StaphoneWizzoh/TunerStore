@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"crypto/sha1"
 	"encoding/hex"
 	"errors"
@@ -115,17 +114,8 @@ func (s *Store) Write(key string, r io.Reader) (int64, error){
 	return s.writeStream(key, r)
 }
 
-// FIXME: Just return the file from readStream
 func (s *Store) Read(key string) (int64, io.Reader, error){
-	n, f, err := s.readStream(key)
-	if err != nil {
-		return n, nil, err
-	}
-	defer f.Close()
-
-	buf := new(bytes.Buffer)
-	_, err = io.Copy(buf, f)
-	return n, buf, err
+	return s.readStream(key)
 }
 
 func (s *Store) readStream(key string)(int64, io.ReadCloser, error){
