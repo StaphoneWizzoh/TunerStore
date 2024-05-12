@@ -52,7 +52,7 @@ func main(){
 		data := bytes.NewReader([]byte("a thick data file"))
 		s3.Store(key, data)	
 		
-		if err := s3.store.Delete(key); err != nil{
+		if err := s3.store.Delete(s3.ID,key); err != nil{
 			log.Fatal(err)
 		}
 
