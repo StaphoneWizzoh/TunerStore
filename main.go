@@ -2,6 +2,8 @@ package main
 
 import (
 	"bytes"
+	"fmt"
+	"io/ioutil"
 	"log"
 	"time"
 
@@ -38,26 +40,28 @@ func main(){
 		log.Fatal(s1.Start())	
 	}()
 
-	time.Sleep(1 * time.Second)
+	time.Sleep(2 * time.Second)
 
 	go s2.Start()
 	
-	time.Sleep(1 * time.Second)
+	time.Sleep(2 * time.Second)
 
-
+	key := "Picture.jpg"
 	data := bytes.NewReader([]byte("a thick data file"))
-	s2.Store("Picture.jpg", data)
-	time.Sleep(time.Millisecond * 5)	
+	s2.Store(key, data)	
 	
+	if err := s2.store.Delete(key); err != nil{
+		log.Fatal(err)
+	}
 
-	// r, err := s2.Get("privateData")
-	// if err != nil{
-	// 	log.Fatal(err)
-	// }
+	r, err := s2.Get(key)
+	if err != nil{
+		log.Fatal(err)
+	}
 
-	// b, err := ioutil.ReadAll(r)
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-	// fmt.Println(string(b))
+	b, err := ioutil.ReadAll(r)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(string(b))
 }
