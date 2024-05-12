@@ -44,8 +44,11 @@ func main(){
 	
 	time.Sleep(1 * time.Second)
 
+
 	// data := bytes.NewReader([]byte("a thick data file"))
-	// s2.Store("privateData", data)
+	// s2.Store("Picture.jpg", data)
+	// time.Sleep(time.Millisecond * 5)	
+	
 
 	r, err := s2.Get("privateData")
 	if err != nil{
@@ -57,6 +60,4 @@ func main(){
 		log.Fatal(err)
 	}
 	fmt.Println(string(b))
-
-	select{}
 }
