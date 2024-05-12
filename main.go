@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -19,6 +20,7 @@ func makeServer(listenAddr string, nodes ...string) *FileServer {
 	tcpTransport := p2p.NewTCPTransport(tcpTransportOpts)
 
 	fileServerOpts := FileServerOpts{
+		EncKey: newEncryptionKey(),
 		StorageRoot: listenAddr + "_network",
 		PathTransformFunc: CASPathTransformFunc,
 		Transport: tcpTransport,
@@ -32,32 +34,38 @@ func makeServer(listenAddr string, nodes ...string) *FileServer {
 }
 
 func main(){
-	s1 := makeServer(":8000", "")
-	s2 := makeServer(":80", ":8000")
-	go func ()  {
-		log.Fatal(s1.Start())	
-	}()
+	s1 := makeServer(":8888", "")
+	s2 := makeServer(":80", ":8888")
+	s3 := makeServer(":3000", ":8888", ":80")
+	go func ()  {log.Fatal(s1.Start())}()
+	time.Sleep(time.Millisecond * 500)
+	go func ()  {log.Fatal(s2.Start())}()
 
-	time.Sleep(1 * time.Second)
+	time.Sleep(2 * time.Second)
 
-	go s2.Start()
+	go s3.Start()
 	
-	time.Sleep(1 * time.Second)
+	time.Sleep(2 * time.Second)
 
+	for i:=0;i<20;i++{
+		key := fmt.Sprintf("Picture_%d.jpg", i)
+		data := bytes.NewReader([]byte("a thick data file"))
+		s3.Store(key, data)	
+		
+		if err := s3.store.Delete(s3.ID,key); err != nil{
+			log.Fatal(err)
+		}
 
-	// data := bytes.NewReader([]byte("a thick data file"))
-	// s2.Store("Picture.jpg", data)
-	// time.Sleep(time.Millisecond * 5)	
-	
+		r, err := s3.Get(key)
+		if err != nil{
+			log.Fatal(err)
+		}
 
-	r, err := s2.Get("privateData")
-	if err != nil{
-		log.Fatal(err)
+		b, err := ioutil.ReadAll(r)
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Println(string(b))
 	}
 
-	b, err := ioutil.ReadAll(r)
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println(string(b))
 }
