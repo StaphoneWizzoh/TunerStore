@@ -114,7 +114,8 @@ func (s *FileServer) Get(key string)(io.Reader, error){
 		var fileSize int64 
 		binary.Read(peer, binary.LittleEndian, &fileSize)
 
-		n, err := s.store.Write(key, io.LimitReader(peer, fileSize))
+		n, err := s.store.WriteDecrypt(s.EncKey, key, io.LimitReader(peer, fileSize))
+		// n, err := s.store.Write(key, io.LimitReader(peer, fileSize))
 		if err != nil{
 			return nil, err
 		}
