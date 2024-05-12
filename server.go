@@ -246,6 +246,13 @@ func (s *FileServer) handleMessageGetFile(from string, msg MessageGetFile)error{
 		return err
 	}
 
+	// checking if the reader is a readcloser, if it is then closing it.
+	rc, ok := r.(io.ReadCloser)
+	if ok{
+		fmt.Println("closing readClose")
+		defer rc.Close()
+	}
+
 	peer, ok := s.peers[from]
 	if !ok{
 		return fmt.Errorf("peer %s not in map", from)
